@@ -295,15 +295,15 @@ class CornersProblem(search.SearchProblem):
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        visitedCorners = tuple(
+            corner == self.startingPosition for corner in self.corners)
+        return self.startingPosition, visitedCorners
 
     def isGoalState(self, state: Any):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return all(state[1])
 
     def getSuccessors(self, state: Any):
         """
@@ -325,7 +325,16 @@ class CornersProblem(search.SearchProblem):
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
 
-            "*** YOUR CODE HERE ***"
+            position, visitedCorners = state
+            x, y = position
+            dx, dy = Actions.directionToVector(action)
+            nextPosition = (int(x + dx), int(y + dy))
+            if not self.walls[nextPosition[0]][nextPosition[1]]:
+                nextVisitedCorners = tuple(
+                    visited or corner == nextPosition
+                    for corner, visited in zip(self.corners, visitedCorners))
+                successors.append(
+                    ((nextPosition, nextVisitedCorners), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -360,8 +369,15 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
-    "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    position, visitedCorners = state
+    unvisitedCorners = [corner for corner, visited in zip(corners, visitedCorners) if not visited]
+    if not unvisitedCorners:
+        return 0
+
+    return max(
+        abs(position[0] - corner[0]) + abs(position[1] - corner[1])
+        for corner in unvisitedCorners
+    )
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
