@@ -86,67 +86,18 @@ def depthFirstSearch(problem: SearchProblem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    frontier = util.Stack()
-    frontier.push((problem.getStartState(), []))
-    visited = set()
-
-    while not frontier.isEmpty():
-        state, actions = frontier.pop()
-        if state in visited:
-            continue
-        if problem.isGoalState(state):
-            return actions
-
-        # Mark on pop so DFS can follow a deeper path to a queued state.
-        visited.add(state)
-        for successor, action, _ in problem.getSuccessors(state):
-            if successor not in visited:
-                frontier.push((successor, actions + [action]))
-
-    return []
+    "*** YOUR CODE HERE ***"
+    util.raiseNotDefined()
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
-    start = problem.getStartState()
-    frontier = util.Queue()
-    frontier.push((start, []))
-    visited = {start}
-
-    while not frontier.isEmpty():
-        state, actions = frontier.pop()
-        if problem.isGoalState(state):
-            return actions
-
-        for successor, action, _ in problem.getSuccessors(state):
-            if successor not in visited:
-                # Mark on enqueue to avoid adding the same state twice.
-                visited.add(successor)
-                frontier.push((successor, actions + [action]))
-
-    return []
+    "*** YOUR CODE HERE ***"
+    util.raiseNotDefined()
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
-    start = problem.getStartState()
-    frontier = util.PriorityQueue()
-    frontier.push((start, [], 0), 0)
-    best_cost = {start: 0}
-
-    while not frontier.isEmpty():
-        state, actions, cost = frontier.pop()
-        # A cheaper path may have been queued since this entry was added.
-        if cost > best_cost[state]:
-            continue
-        if problem.isGoalState(state):
-            return actions
-
-        for successor, action, step_cost in problem.getSuccessors(state):
-            next_cost = cost + step_cost
-            if successor not in best_cost or next_cost < best_cost[successor]:
-                best_cost[successor] = next_cost
-                frontier.push((successor, actions + [action], next_cost), next_cost)
-
-    return []
+    "*** YOUR CODE HERE ***"
+    util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
     """
@@ -157,26 +108,26 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    start = problem.getStartState()
+    # Supporting Q4 implementation: required to run the Q7 food agent.
     frontier = util.PriorityQueue()
+    start = problem.getStartState()
     frontier.push((start, [], 0), heuristic(start, problem))
     best_cost = {start: 0}
 
     while not frontier.isEmpty():
-        state, actions, cost = frontier.pop()
-        # A cheaper path may have been queued since this entry was added.
+        state, path, cost = frontier.pop()
         if cost > best_cost[state]:
             continue
         if problem.isGoalState(state):
-            return actions
-
+            return path
         for successor, action, step_cost in problem.getSuccessors(state):
-            next_cost = cost + step_cost
-            if successor not in best_cost or next_cost < best_cost[successor]:
-                best_cost[successor] = next_cost
-                priority = next_cost + heuristic(successor, problem)
-                frontier.push((successor, actions + [action], next_cost), priority)
-
+            new_cost = cost + step_cost
+            if successor not in best_cost or new_cost < best_cost[successor]:
+                best_cost[successor] = new_cost
+                frontier.push(
+                    (successor, path + [action], new_cost),
+                    new_cost + heuristic(successor, problem)
+                )
     return []
 
 
