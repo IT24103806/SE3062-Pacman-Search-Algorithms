@@ -453,36 +453,60 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
     """
-    # Q7 FOOD SEARCH: maximum exact maze distance to remaining food.
-    # Any solution must reach even the farthest dot, so this is a lower bound.
     position, foodGrid = state
+    # Q7 Food Search - IT24510004
+    # Lower bound: nearest food distance + MST over all remaining food.
     foods = foodGrid.asList()
     if not foods:
         return 0
 
-    # One BFS per food coordinate, reused across all heuristic evaluations.
-    # Distances respect walls; the queue is the required util.Queue.
-    distance_maps = problem.heuristicInfo.setdefault("foodDistanceMaps", {})
-    for food in foods:
-        if food in distance_maps:
-            continue
-        distances = {food: 0}
-        frontier = util.Queue()
-        frontier.push(food)
-        while not frontier.isEmpty():
-            x, y = frontier.pop()
-            for nx, ny in ((x, y + 1), (x, y - 1),
-                           (x + 1, y), (x - 1, y)):
-                if (0 <= nx < problem.walls.width
-                        and 0 <= ny < problem.walls.height
-                        and not problem.walls[nx][ny]
-                        and (nx, ny) not in distances):
-                    distances[(nx, ny)] = distances[(x, y)] + 1
-                    frontier.push((nx, ny))
-        distance_maps[food] = distances
+    distanceMaps = problem.heuristicInfo.setdefault('foodDistanceMaps', {})
+    mstCosts = problem.heuristicInfo.setdefault('foodMSTCosts', {})
 
-    return max(distance_maps[food].get(position, float("inf"))
-               for food in foods)
+    def distancesFrom(food):
+        # One BFS per food location, reused across all search states.
+        if food not in distanceMaps:
+            distances = {food: 0}
+            frontier = util.Queue()
+            frontier.push(food)
+            while not frontier.isEmpty():
+                x, y = frontier.pop()
+                for neighbor in ((x + 1, y), (x - 1, y),
+                                 (x, y + 1), (x, y - 1)):
+                    nx, ny = neighbor
+                    if (0 <= nx < problem.walls.width
+                            and 0 <= ny < problem.walls.height
+                            and not problem.walls[nx][ny]
+                            and neighbor not in distances):
+                        distances[neighbor] = distances[(x, y)] + 1
+                        frontier.push(neighbor)
+            distanceMaps[food] = distances
+        return distanceMaps[food]
+
+    nearestFood = min(distancesFrom(food)[position] for food in foods)
+    foodSet = frozenset(foods)
+    if foodSet not in mstCosts:
+        # Prim's algorithm using exact maze distances as edge weights.
+        # A singleton food set has a zero-cost MST.
+        root = foods[0]
+        cheapestEdges = {food: distancesFrom(root)[food]
+                         for food in foods[1:]}
+        treeCost = 0
+        while cheapestEdges:
+            nextFood = min(cheapestEdges, key=cheapestEdges.get)
+            treeCost += cheapestEdges.pop(nextFood)
+            distances = distancesFrom(nextFood)
+            for food in cheapestEdges:
+                cheapestEdges[food] = min(cheapestEdges[food], distances[food])
+        mstCosts[foodSet] = treeCost
+
+    # Admissible: any complete route must reach its first dot and then connect
+    # all dots. These costs are at least nearestFood and MST, respectively.
+    # Consistent: without eating, nearestFood drops by at most one and MST is
+    # unchanged. When eating q, attach q to an MST of the remaining food by
+    # its nearest edge: MST(old) <= nearest(q, remaining) + MST(remaining).
+    # Thus h(state) <= 1 + h(successor), including the last-dot transition.
+    return nearestFood + mstCosts[foodSet]
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
