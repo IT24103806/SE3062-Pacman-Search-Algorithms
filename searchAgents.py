@@ -295,15 +295,15 @@ class CornersProblem(search.SearchProblem):
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        visitedCorners = tuple(
+            corner == self.startingPosition for corner in self.corners)
+        return self.startingPosition, visitedCorners
 
     def isGoalState(self, state: Any):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return all(state[1])
 
     def getSuccessors(self, state: Any):
         """
@@ -325,7 +325,16 @@ class CornersProblem(search.SearchProblem):
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
 
-            "*** YOUR CODE HERE ***"
+            position, visitedCorners = state
+            x, y = position
+            dx, dy = Actions.directionToVector(action)
+            nextPosition = (int(x + dx), int(y + dy))
+            if not self.walls[nextPosition[0]][nextPosition[1]]:
+                nextVisitedCorners = tuple(
+                    visited or corner == nextPosition
+                    for corner, visited in zip(self.corners, visitedCorners))
+                successors.append(
+                    ((nextPosition, nextVisitedCorners), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -360,8 +369,15 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     corners = problem.corners # These are the corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
-    "*** YOUR CODE HERE ***"
-    return 0 # Default to trivial solution
+    position, visitedCorners = state
+    unvisitedCorners = [corner for corner, visited in zip(corners, visitedCorners) if not visited]
+    if not unvisitedCorners:
+        return 0
+
+    return max(
+        abs(position[0] - corner[0]) + abs(position[1] - corner[1])
+        for corner in unvisitedCorners
+    )
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -425,64 +441,106 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
 
-def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
-    """
-    Your heuristic for the FoodSearchProblem goes here.
-
-    This heuristic must be consistent to ensure correctness.  First, try to come
-    up with an admissible heuristic; almost all admissible heuristics will be
-    consistent as well.
-
-    If using A* ever finds a solution that is worse uniform cost search finds,
-    your heuristic is *not* consistent, and probably not admissible!  On the
-    other hand, inadmissible or inconsistent heuristics may find optimal
-    solutions, so be careful.
-
-    The state is a tuple ( pacmanPosition, foodGrid ) where foodGrid is a Grid
-    (see game.py) of either True or False. You can call foodGrid.asList() to get
-    a list of food coordinates instead.
-
-    If you want access to info like walls, capsules, etc., you can query the
-    problem.  For example, problem.walls gives you a Grid of where the walls
-    are.
-
-    If you want to *store* information to be reused in other calls to the
-    heuristic, there is a dictionary called problem.heuristicInfo that you can
-    use. For example, if you only want to count the walls once and store that
-    value, try: problem.heuristicInfo['wallCount'] = problem.walls.count()
-    Subsequent calls to this heuristic can access
-    problem.heuristicInfo['wallCount']
-    """
-    # Q7 FOOD SEARCH: maximum exact maze distance to remaining food.
-    # Any solution must reach even the farthest dot, so this is a lower bound.
-    position, foodGrid = state
-    foods = foodGrid.asList()
-    if not foods:
+def getCachedMazeDistance(point1, point2, problem):
+    """Find shortest maze distance and cache the result."""
+    if point1 == point2:
         return 0
 
-    # One BFS per food coordinate, reused across all heuristic evaluations.
-    # Distances respect walls; the queue is the required util.Queue.
-    distance_maps = problem.heuristicInfo.setdefault("foodDistanceMaps", {})
-    for food in foods:
-        if food in distance_maps:
-            continue
-        distances = {food: 0}
-        frontier = util.Queue()
-        frontier.push(food)
-        while not frontier.isEmpty():
-            x, y = frontier.pop()
-            for nx, ny in ((x, y + 1), (x, y - 1),
-                           (x + 1, y), (x - 1, y)):
-                if (0 <= nx < problem.walls.width
-                        and 0 <= ny < problem.walls.height
-                        and not problem.walls[nx][ny]
-                        and (nx, ny) not in distances):
-                    distances[(nx, ny)] = distances[(x, y)] + 1
-                    frontier.push((nx, ny))
-        distance_maps[food] = distances
+    cache = problem.heuristicInfo.setdefault("mazeDistances", {})
+    key = tuple(sorted((point1, point2)))
 
-    return max(distance_maps[food].get(position, float("inf"))
-               for food in foods)
+    if key in cache:
+        return cache[key]
+
+    from collections import deque
+
+    walls = problem.walls
+    queue = deque([(point1, 0)])
+    visited = {point1}
+    directions = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+    while queue:
+        (x, y), distance = queue.popleft()
+
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+
+            if (
+                nx < 0 or ny < 0
+                or nx >= walls.width
+                or ny >= walls.height
+                or walls[nx][ny]
+                or (nx, ny) in visited
+            ):
+                continue
+
+            nextPosition = (nx, ny)
+
+            if nextPosition == point2:
+                cache[key] = distance + 1
+                return distance + 1
+
+            visited.add(nextPosition)
+            queue.append((nextPosition, distance + 1))
+
+    return float("inf")
+
+
+def getFoodMSTCost(foodList, problem):
+    """Calculate cached MST cost for remaining food."""
+    if len(foodList) <= 1:
+        return 0
+
+    cache = problem.heuristicInfo.setdefault("foodMST", {})
+    key = frozenset(foodList)
+
+    if key in cache:
+        return cache[key]
+
+    remaining = set(foodList)
+    connected = {remaining.pop()}
+    totalCost = 0
+
+    while remaining:
+        bestDistance = float("inf")
+        bestFood = None
+
+        for source in connected:
+            for target in remaining:
+                distance = getCachedMazeDistance(source, target, problem)
+
+                if distance < bestDistance:
+                    bestDistance = distance
+                    bestFood = target
+
+        if bestFood is None:
+            return float("inf")
+
+        totalCost += bestDistance
+        connected.add(bestFood)
+        remaining.remove(bestFood)
+
+    cache[key] = totalCost
+    return totalCost
+
+
+def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
+    """Optimized food heuristic using maze distances and MST."""
+    position, foodGrid = state
+    foodList = foodGrid.asList()
+
+    if not foodList:
+        return 0
+
+    nearestFoodDistance = min(
+        getCachedMazeDistance(position, food, problem)
+        for food in foodList
+    )
+
+    mstCost = getFoodMSTCost(foodList, problem)
+
+    return nearestFoodDistance + mstCost
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
