@@ -4,8 +4,8 @@
 # Student ID: IT24102365 (Testing and Documentation)
 #
 # This test suite verifies search algorithms, state transitions, goal tests,
-# path legalities, and heuristic mathematical properties (admissibility, consistency)
-# without altering existing implementations in search.py or searchAgents.py.
+# path legalities, and heuristic mathematical properties (admissibility, consistency,
+# non-triviality) without altering existing implementations in search.py or searchAgents.py.
 
 import unittest
 import sys
@@ -183,8 +183,7 @@ class TestSearchAlgorithmsUnit(unittest.TestCase):
             cost = problem.getCostOfActions(path)
             self.assertGreater(cost, 0, "%s path cost must be positive." % name)
 
-        # BFS shortest hop: S->B->G (2 hops, cost 13) or S->A->B->G (3 hops, cost 6)
-        # Note: BFS minimizes hops, so 2 hops (S->B->G)
+        # BFS shortest hop: S->B->G (2 hops, cost 13)
         bfs_path = search.breadthFirstSearch(problem)
         self.assertEqual(len(bfs_path), 2, "BFS must find the 2-hop path (S->B->G).")
 
@@ -421,7 +420,7 @@ class TestCornersProblemAndHeuristic(unittest.TestCase):
         """
         Empirical admissibility check: h(s) <= h*(s) for reachable states examined.
         Computes true optimal remaining cost h*(s) by running BFS from state s to goal on tinyCorners.
-        Note: This is an empirical check over evaluated states, not a mathematical proof.
+        Note: This is an empirical check over evaluated states, not a universal proof.
         """
         frontier = util.Queue()
         start = self.tiny_prob.getStartState()
@@ -455,7 +454,7 @@ class TestCornersProblemAndHeuristic(unittest.TestCase):
         Empirical consistency check: h(s) <= c(s, a, s') + h(s') across legal transitions.
         In CornersProblem, c(s, a, s') == 1.
         Therefore: h(s) - h(s') <= 1.
-        Note: This is an empirical check over evaluated transitions, not a mathematical proof.
+        Note: This is an empirical check over evaluated transitions, not a universal proof.
         """
         frontier = util.Queue()
         start = self.tiny_prob.getStartState()
@@ -540,15 +539,9 @@ class TestFoodSearchAndClosestDot(unittest.TestCase):
                 self.assertEqual(next_food.count(), initialCount,
                                  "Successor food count must remain unchanged when not entering food dot.")
 
-    def test_food_heuristic_empirical_properties(self):
-        """
-        Empirically verifies foodHeuristic non-negativity and goal state valuation.
-        """
+    def test_food_heuristic_goal_state_is_zero(self):
+        """foodHeuristic must evaluate to exactly 0 when no food remains."""
         start = self.foodProblem.getStartState()
-        h_val = searchAgents.foodHeuristic(start, self.foodProblem)
-        self.assertGreaterEqual(h_val, 0, "foodHeuristic must be non-negative: h(s) >= 0.")
-
-        # Test at goal state (no food)
         pos, foodGrid = start
         emptyFoodGrid = foodGrid.copy()
         for x in range(emptyFoodGrid.width):
@@ -557,6 +550,21 @@ class TestFoodSearchAndClosestDot(unittest.TestCase):
         goalState = (pos, emptyFoodGrid)
         h_goal = searchAgents.foodHeuristic(goalState, self.foodProblem)
         self.assertEqual(h_goal, 0, "foodHeuristic must evaluate to 0 at goal states.")
+
+    def test_food_heuristic_non_triviality_when_food_remains(self):
+        """
+        Non-triviality check: when food dots remain, foodHeuristic MUST return h(s) > 0.
+        A trivial stub returning 0 is not acceptable and fails this test.
+        """
+        start = self.foodProblem.getStartState()
+        foodCount = start[1].count()
+        self.assertGreater(foodCount, 0, "Start state must have remaining food for this test.")
+        h_val = searchAgents.foodHeuristic(start, self.foodProblem)
+        self.assertGreater(
+            h_val, 0,
+            "foodHeuristic failed non-triviality check: returned %d when %d food dots remain. "
+            "A non-trivial heuristic is required for Q7 (stub returns 0)." % (h_val, foodCount)
+        )
 
     def test_closest_dot_problem_structure(self):
         """
