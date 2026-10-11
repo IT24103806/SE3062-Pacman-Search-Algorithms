@@ -151,6 +151,28 @@ def benchmark_suite(trials: int = 3, fast: bool = False) -> List[Dict[str, Any]]
                 **res
             })
 
+    # 3. Food Search Problem Benchmarks (tinySearch)
+    if not fast:
+        def food_factory():
+            st = get_game_state("tinySearch")
+            return searchAgents.FoodSearchProblem(st)
+
+        food_configs = [
+            ("BFS", "None", lambda p: search.breadthFirstSearch(p)),
+            ("A*", "foodHeuristic", lambda p: search.aStarSearch(p, searchAgents.foodHeuristic)),
+            ("A*", "Null", lambda p: search.aStarSearch(p, search.nullHeuristic)),
+        ]
+        for algo_name, heur_name, search_call in food_configs:
+            res = run_single_experiment(food_factory, search_call, trials=1)
+            records.append({
+                "suite": "Food Search Problem",
+                "problem": "FoodSearchProblem",
+                "layout": "tinySearch",
+                "algorithm": algo_name,
+                "heuristic": heur_name,
+                **res
+            })
+
     return records
 
 

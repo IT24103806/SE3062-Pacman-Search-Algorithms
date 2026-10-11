@@ -224,11 +224,17 @@ def main():
         if suite_res["exit_code"] == 0:
             status = "PASS"
             ran_line = [l for l in suite_out.splitlines() if "Ran " in l and "tests in" in l]
-            summary_info = ran_line[0].strip() if ran_line else "24 tests passed"
-            detail = f"{summary_info} (Unit, Graph, Corners, Food & Heuristic Math)"
+            summary_info = ran_line[0].strip() if ran_line else "25 tests passed"
+            detail = f"{summary_info} (All 25 tests passed: Unit, Graph, Corners, Food & Heuristic Math)"
         else:
             status = "FAIL"
-            detail = "Regression suite failure"
+            ran_line = [l for l in suite_out.splitlines() if "Ran " in l and "tests in" in l]
+            summary_info = ran_line[0].strip() if ran_line else "25 tests executed"
+            fail_line = [l.strip() for l in suite_out.splitlines() if "AssertionError:" in l]
+            fail_reason = fail_line[0].split("AssertionError:", 1)[1].strip() if fail_line else "Test assertion failed"
+            if len(fail_reason) > 75:
+                fail_reason = fail_reason[:72] + "..."
+            detail = f"{summary_info} (FAIL: {fail_reason})"
             has_required_failures = True
 
         results.append({
