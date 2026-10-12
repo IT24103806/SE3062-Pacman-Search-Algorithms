@@ -401,6 +401,18 @@ class TestCornersProblemAndHeuristic(unittest.TestCase):
             "Visiting only three corners must not satisfy the goal.",
         )
 
+    def test_corners_visited_flags_persist_after_leaving_corner(self):
+        corner = self.tiny_prob.corners[0]
+        state = (corner, (True, False, False, False))
+        successors = self.tiny_prob.getSuccessors(state)
+
+        self.assertTrue(successors, "A corner state must have a legal move away.")
+        for successor, _, _ in successors:
+            self.assertTrue(
+                successor[1][0],
+                "Leaving a visited corner must not clear its visited flag.",
+            )
+
     def test_corners_successor_legality_and_transitions(self):
         start = self.tiny_prob.getStartState()
         successors = self.tiny_prob.getSuccessors(start)
