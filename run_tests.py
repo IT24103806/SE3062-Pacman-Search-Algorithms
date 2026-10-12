@@ -73,6 +73,16 @@ def parse_autograder_score(output: str, question: str) -> str:
     return "N/A"
 
 
+def format_command_output(stdout: str, stderr: str) -> str:
+    """Format captured subprocess output for failure diagnostics."""
+    sections = []
+    if stdout.strip():
+        sections.append(f"stdout:\n{stdout.rstrip()}")
+    if stderr.strip():
+        sections.append(f"stderr:\n{stderr.rstrip()}")
+    return "\n".join(sections) if sections else "No output captured."
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="SE3062 Pac-Man Search Algorithms Unified Test Runner (Member 4)"
@@ -220,7 +230,9 @@ def main():
             })
             print(f"    -> [{status}] {q_id.upper()}: {q_desc} - {detail} ({q_res['duration']:.2f}s)")
 
-            if args.verbose:
+            if status in ("FAIL", "BLOCKED") and not args.verbose:
+                print(f"    Failure diagnostics:\n{format_command_output(stdout, q_res['stderr'])}")
+            elif args.verbose:
                 print("--- stdout ---")
                 print(stdout)
                 if q_res["stderr"]:

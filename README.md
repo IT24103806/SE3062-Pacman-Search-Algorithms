@@ -13,7 +13,7 @@ Based on the UC Berkeley CS188 Pac-Man AI Projects framework, adapted for collab
 | **Member 1** | `IT24104048` | **Q1–Q4:** DFS, BFS, UCS, and A* Search in `search.py` | `IT24104048-search-algorithms` | Integrated & Verified (12/12 pts) |
 | **Member 2** | `IT24103806` | **Q5–Q6:** Corners Problem & Admissible Corners Heuristic in `searchAgents.py` | `IT24103806-corners` | Integrated & Verified (6/6 pts) |
 | **Member 3** | `IT24510004` | **Q7–Q8:** Food Heuristic (`foodHeuristic`) & Closest Dot Search (`findPathToClosestDot`) | `IT24510004-food-search` | Integrated & Verified |
-| **Member 4** | `IT24102365` | **Testing, Validation, Benchmarking & Documentation:** 29-Test Regression Suite, Test Runner, Benchmark Tool, Traceability Report | `IT24102365-testing-documentation` | Completed & Verified (100% QA scope) |
+| **Member 4** | `IT24102365` | **Testing, Validation, Benchmarking & Documentation:** 33-Test Regression Suite, Test Runner, Benchmark Tool, Traceability Report | `IT24102365-testing-documentation` | Completed & Verified (100% QA scope) |
 
 ---
 
@@ -39,7 +39,7 @@ SE3062-Pacman-Search-Algorithms/
 ├── autograder.py              # Official Berkeley autograder runner
 ├── grading.py                 # Grading framework and scoring logic
 ├── testcases/                 # Official autograder fixtures (q1 through q8)
-├── test_member4_suite.py      # Standalone 29-test unit, graph, legality & heuristic math suite (Member 4)
+├── test_member4_suite.py      # Standalone 33-test unit, graph, legality & heuristic math suite (Member 4)
 ├── benchmark_search.py        # Reproducible performance benchmark & evaluation suite (Member 4)
 ├── run_tests.py               # Portable automated test runner & test coordinator (Member 4)
 ├── TESTING_REPORT.md          # Comprehensive testing, traceability, benchmark & QA report (Member 4)
@@ -77,7 +77,7 @@ python run_tests.py --all
 # (or use alias)
 python run_tests.py --q1-q8
 
-# 3. Run ONLY the 29-test Member 4 regression suite
+# 3. Run ONLY the 33-test Member 4 regression suite
 python run_tests.py --suite-only
 
 # 4. Run ONLY the official autograder for integrated questions (Q1-Q6)
@@ -91,7 +91,7 @@ python run_tests.py -v
 ```
 
 ### 4.2 Standalone Member 4 Regression Suite (`test_member4_suite.py`)
-To run Member 4's deterministic 29-test unit and mathematical verification suite directly:
+To run Member 4's deterministic 33-test unit and mathematical verification suite directly:
 ```bash
 python test_member4_suite.py
 ```

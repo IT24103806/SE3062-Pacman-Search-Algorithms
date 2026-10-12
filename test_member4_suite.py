@@ -639,6 +639,20 @@ class TestAutograderScoreParser(unittest.TestCase):
         self.assertEqual(run_tests.parse_autograder_score(output, "q7"), "N/A")
 
 
+class TestRunnerDiagnostics(unittest.TestCase):
+    """Verifies captured command output remains visible in failure diagnostics."""
+
+    def test_formats_stdout_and_stderr(self):
+        diagnostic = run_tests.format_command_output("test failure\n", "traceback\n")
+        self.assertEqual(diagnostic, "stdout:\ntest failure\nstderr:\ntraceback")
+
+    def test_empty_command_output_has_explicit_message(self):
+        self.assertEqual(
+            run_tests.format_command_output("", " \n"),
+            "No output captured.",
+        )
+
+
 def suite():
     test_suite = unittest.TestSuite()
     loader = unittest.defaultTestLoader
@@ -647,6 +661,7 @@ def suite():
     test_suite.addTest(loader.loadTestsFromTestCase(TestCornersProblemAndHeuristic))
     test_suite.addTest(loader.loadTestsFromTestCase(TestFoodSearchAndClosestDot))
     test_suite.addTest(loader.loadTestsFromTestCase(TestAutograderScoreParser))
+    test_suite.addTest(loader.loadTestsFromTestCase(TestRunnerDiagnostics))
     return test_suite
 
 
