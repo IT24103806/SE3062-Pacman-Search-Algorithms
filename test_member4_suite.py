@@ -16,6 +16,7 @@ from typing import List, Tuple, Dict, Any
 import util
 import search
 import searchAgents
+import run_tests
 import layout
 import pacman
 from game import Directions, Actions
@@ -372,6 +373,26 @@ class TestCornersProblemAndHeuristic(unittest.TestCase):
         goal_state = (pos, (True, True, True, True))
         self.assertTrue(self.tiny_prob.isGoalState(goal_state), "State with all True corners must be a goal.")
 
+    def test_corners_start_on_corner_is_recorded(self):
+        corner_layout = layout.Layout([
+            "%%%%%%%",
+            "%.   .%",
+            "%     %",
+            "%     %",
+            "%     %",
+            "%P   .%",
+            "%%%%%%%",
+        ])
+        state = pacman.GameState()
+        state.initialize(corner_layout, 0)
+        state.data.food[1][1] = True
+        problem = searchAgents.CornersProblem(state)
+
+        start_position, visited_corners = problem.getStartState()
+        self.assertEqual(start_position, (1, 1))
+        self.assertEqual(visited_corners, (True, False, False, False))
+        self.assertFalse(problem.isGoalState(problem.getStartState()))
+
     def test_corners_successor_legality_and_transitions(self):
         start = self.tiny_prob.getStartState()
         successors = self.tiny_prob.getSuccessors(start)
@@ -582,6 +603,22 @@ class TestFoodSearchAndClosestDot(unittest.TestCase):
                         "ClosestDotSearchAgent must declare findPathToClosestDot.")
 
 
+class TestAutograderScoreParser(unittest.TestCase):
+    """Verifies score parsing for the autograder output formats used by the runner."""
+
+    def test_parses_formatted_q7_bonus_score(self):
+        output = "### Question q7: 5/4 ###"
+        self.assertEqual(run_tests.parse_autograder_score(output, "q7"), "5/4")
+
+    def test_parses_plain_question_score(self):
+        output = "Question q3: 3/3"
+        self.assertEqual(run_tests.parse_autograder_score(output, "q3"), "3/3")
+
+    def test_missing_question_score_returns_na(self):
+        output = "Question q3: 3/3"
+        self.assertEqual(run_tests.parse_autograder_score(output, "q7"), "N/A")
+
+
 def suite():
     test_suite = unittest.TestSuite()
     loader = unittest.defaultTestLoader
@@ -589,6 +626,7 @@ def suite():
     test_suite.addTest(loader.loadTestsFromTestCase(TestPositionSearchProblemIntegrity))
     test_suite.addTest(loader.loadTestsFromTestCase(TestCornersProblemAndHeuristic))
     test_suite.addTest(loader.loadTestsFromTestCase(TestFoodSearchAndClosestDot))
+    test_suite.addTest(loader.loadTestsFromTestCase(TestAutograderScoreParser))
     return test_suite
 
 
