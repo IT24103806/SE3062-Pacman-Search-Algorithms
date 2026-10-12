@@ -12,8 +12,8 @@ Based on the UC Berkeley CS188 Pac-Man AI Projects framework, adapted for collab
 | :--- | :--- | :--- | :--- | :--- |
 | **Member 1** | `IT24104048` | **Q1–Q4:** DFS, BFS, UCS, and A* Search in `search.py` | `IT24104048-search-algorithms` | Integrated & Verified (12/12 pts) |
 | **Member 2** | `IT24103806` | **Q5–Q6:** Corners Problem & Admissible Corners Heuristic in `searchAgents.py` | `IT24103806-corners` | Integrated & Verified (6/6 pts) |
-| **Member 3** | `IT24510004` | **Q7–Q8:** Food Heuristic (`foodHeuristic`) & Closest Dot Search (`findPathToClosestDot`) | `IT24510004-food-search` | In Progress (Q7 passes; Q8 stub in progress) |
-| **Member 4** | `IT24102365` | **Testing, Validation, Benchmarking & Documentation:** 24-Test Regression Suite, Test Runner, Benchmark Tool, Traceability Report | `IT24102365-testing-documentation` | Completed & Verified (100% QA scope) |
+| **Member 3** | `IT24510004` | **Q7–Q8:** Food Heuristic (`foodHeuristic`) & Closest Dot Search (`findPathToClosestDot`) | `IT24510004-food-search` | Integrated & Verified |
+| **Member 4** | `IT24102365` | **Testing, Validation, Benchmarking & Documentation:** 25-Test Regression Suite, Test Runner, Benchmark Tool, Traceability Report | `IT24102365-testing-documentation` | Completed & Verified (100% QA scope) |
 
 ---
 
@@ -38,8 +38,8 @@ SE3062-Pacman-Search-Algorithms/
 │   └── trickyClassic.lay
 ├── autograder.py              # Official Berkeley autograder runner
 ├── grading.py                 # Grading framework and scoring logic
-├── test_cases/                # Official Berkeley test fixtures (q1 through q8)
-├── test_member4_suite.py      # Standalone 24-test unit, graph, legality & heuristic math suite (Member 4)
+├── testcases/                 # Official autograder fixtures (q1 through q8)
+├── test_member4_suite.py      # Standalone 25-test unit, graph, legality & heuristic math suite (Member 4)
 ├── benchmark_search.py        # Reproducible performance benchmark & evaluation suite (Member 4)
 ├── run_tests.py               # Portable automated test runner & test coordinator (Member 4)
 ├── TESTING_REPORT.md          # Comprehensive testing, traceability, benchmark & QA report (Member 4)
@@ -107,28 +107,28 @@ This suite validates:
 To run individual questions via the official Berkeley autograder:
 ```bash
 # Q1: Depth-First Search (DFS)
-python autograder.py -q q1
+python autograder.py --test-directory testcases -q q1
 
 # Q2: Breadth-First Search (BFS)
-python autograder.py -q q2
+python autograder.py --test-directory testcases -q q2
 
 # Q3: Uniform-Cost Search (UCS)
-python autograder.py -q q3
+python autograder.py --test-directory testcases -q q3
 
 # Q4: A* Search
-python autograder.py -q q4
+python autograder.py --test-directory testcases -q q4
 
 # Q5: Corners Problem
-python autograder.py -q q5
+python autograder.py --test-directory testcases -q q5
 
 # Q6: Corners Heuristic
-python autograder.py -q q6
+python autograder.py --test-directory testcases -q q6
 
 # Q7: Food Heuristic (Member 3)
-python autograder.py -q q7
+python autograder.py --test-directory testcases -q q7
 
 # Q8: Closest Dot Search (Member 3)
-python autograder.py -q q8
+python autograder.py --test-directory testcases -q q8
 ```
 
 ---

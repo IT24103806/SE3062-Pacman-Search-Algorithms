@@ -101,6 +101,17 @@ def main():
 
     project_root = os.path.dirname(os.path.abspath(__file__))
     python_exe = sys.executable
+    test_directory = next(
+        (
+            directory
+            for directory in ("testcases", "test_cases")
+            if os.path.isdir(os.path.join(project_root, directory))
+        ),
+        None
+    )
+    if test_directory is None:
+        print("ERROR: Could not find testcases/ or test_cases/ fixture directory.")
+        sys.exit(1)
 
     print("=" * 90)
     print("SE3062 Pac-Man Search Algorithms - Automated Test Runner")
@@ -176,7 +187,10 @@ def main():
                 })
                 continue
 
-            q_cmd = [python_exe, "autograder.py", "-q", q_id, "--no-graphics"]
+            q_cmd = [
+                python_exe, "autograder.py", "--test-directory", test_directory,
+                "-q", q_id, "--no-graphics"
+            ]
             print(f"    CMD: {' '.join(q_cmd)}")
             q_res = run_command(q_cmd, cwd=project_root)
             stdout = q_res["stdout"]
