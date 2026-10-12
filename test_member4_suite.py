@@ -393,6 +393,14 @@ class TestCornersProblemAndHeuristic(unittest.TestCase):
         self.assertEqual(visited_corners, (True, False, False, False))
         self.assertFalse(problem.isGoalState(problem.getStartState()))
 
+    def test_corners_goal_requires_all_four_corners(self):
+        state = self.tiny_prob.getStartState()
+        partial_goal = (state[0], (True, True, True, False))
+        self.assertFalse(
+            self.tiny_prob.isGoalState(partial_goal),
+            "Visiting only three corners must not satisfy the goal.",
+        )
+
     def test_corners_successor_legality_and_transitions(self):
         start = self.tiny_prob.getStartState()
         successors = self.tiny_prob.getSuccessors(start)
